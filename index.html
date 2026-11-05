@@ -913,9 +913,32 @@ header{width:100%;background:var(--surface);border-bottom:1px solid var(--border
           <div class="fig-svg-wrap" id="fig-para-ch2"></div>
         </div>
 
-        <div class="thm-box" style="margin-top:14px;">
-          <strong>Propriété 1 :</strong> quand deux droites sont parallèles, toute droite perpendiculaire à l'une est perpendiculaire à l'autre.<br><br>
-          <strong>Propriété 2 :</strong> quand deux droites sont perpendiculaires à une même troisième droite, alors elles sont parallèles entre elles.
+        <div class="fig-box" style="margin-top:14px;">
+          <div class="thm-box" style="margin:0 0 14px;">
+            <strong>Propriété 1 :</strong> quand deux droites sont parallèles, toute droite perpendiculaire à l'une est perpendiculaire à l'autre.
+          </div>
+          <div class="fig-caption">Animation</div>
+          <div style="display:flex;justify-content:center;">
+            <canvas id="anim-canvas-prop1-ch2" width="408" height="276" style="max-width:100%;height:auto;border-radius:10px;"></canvas>
+          </div>
+          <div id="anim-legend-prop1-ch2" style="margin-top:12px;font-size:.88rem;color:var(--text);line-height:1.6;min-height:40px;">Clique sur le bouton pour lancer l'animation.</div>
+          <div style="text-align:center;margin-top:10px;">
+            <button class="show-corr-btn" type="button" id="anim-btn-prop1-ch2" onclick="startAnimProp1_ch2()">▶ Lancer l'animation</button>
+          </div>
+        </div>
+
+        <div class="fig-box" style="margin-top:14px;">
+          <div class="thm-box" style="margin:0 0 14px;">
+            <strong>Propriété 2 :</strong> quand deux droites sont perpendiculaires à une même troisième droite, alors elles sont parallèles entre elles.
+          </div>
+          <div class="fig-caption">Animation</div>
+          <div style="display:flex;justify-content:center;">
+            <canvas id="anim-canvas-prop2-ch2" width="408" height="276" style="max-width:100%;height:auto;border-radius:10px;"></canvas>
+          </div>
+          <div id="anim-legend-prop2-ch2" style="margin-top:12px;font-size:.88rem;color:var(--text);line-height:1.6;min-height:40px;">Clique sur le bouton pour lancer l'animation.</div>
+          <div style="text-align:center;margin-top:10px;">
+            <button class="show-corr-btn" type="button" id="anim-btn-prop2-ch2" onclick="startAnimProp2_ch2()">▶ Lancer l'animation</button>
+          </div>
         </div>
       </div>
     </div>
@@ -6925,8 +6948,343 @@ function buildFigures_ch2(){
     el.innerHTML=s;
   }
 
+  if(!animRunningP1_ch2)animDrawIdle_ch2('anim-canvas-prop1-ch2');
+  if(!animRunningP2_ch2)animDrawIdle_ch2('anim-canvas-prop2-ch2');
+
   buildFigEx1_ch2();
 }
+
+// ── Animations Propriétés 1 et 2 (droites parallèles / perpendiculaires) ──
+var animRunningP1_ch2=false, animRunningP2_ch2=false;
+var animFrameP1_ch2=null, animFrameP2_ch2=null;
+
+function animColors_ch2(){
+  var L=document.body.classList.contains('light');
+  return {
+    bg:L?'#eef0f7':'#22263a',
+    grid:L?'#dbe3f5':'#2e3350',
+    text:L?'#1a1d2e':'#e8eaf6',
+    muted:L?'#5a6380':'#8892b0',
+    d1:L?'#1a1d2e':'#e8eaf6',
+    d2:L?'#2563eb':'#4f8cff',
+    d3:L?'#16a34a':'#3dd68c',
+    right:'#dc2626',
+    ruler:L?'rgba(90,99,128,.28)':'rgba(136,146,176,.28)',
+    rulerBorder:L?'#5a6380':'#8892b0',
+    square:L?'rgba(37,99,235,.18)':'rgba(79,140,255,.22)',
+    squareBorder:L?'#2563eb':'#4f8cff',
+    pencilBody:'#ffcc00',
+    pencilTip:L?'#1a1d2e':'#0f1117'
+  };
+}
+
+var ANIM_LOGICAL_W_ch2=680, ANIM_LOGICAL_H_ch2=460;
+
+function animDrawIdle_ch2(canvasId){
+  var canvas=document.getElementById(canvasId);
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var C=animColors_ch2();
+  animClear_ch2(ctx,canvas,C);
+  ctx.fillStyle=C.muted;
+  ctx.font='16px "DM Sans",Arial,sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText("Clique sur le bouton pour lancer l'animation.",ANIM_LOGICAL_W_ch2/2,ANIM_LOGICAL_H_ch2/2);
+}
+
+// dessine dans un repère logique fixe (680x460) mis à l'échelle du canvas physique,
+// pour garder les mêmes coordonnées de figure quelle que soit la taille d'affichage
+function animClear_ch2(ctx,canvas,C){
+  var w=ANIM_LOGICAL_W_ch2, h=ANIM_LOGICAL_H_ch2;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle=C.bg;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  var scale=canvas.width/w;
+  ctx.setTransform(scale,0,0,scale,0,0);
+  ctx.strokeStyle=C.grid;
+  ctx.lineWidth=1;
+  for(var i=0;i<w;i+=25){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,h);ctx.stroke();}
+  for(var j=0;j<h;j+=25){ctx.beginPath();ctx.moveTo(0,j);ctx.lineTo(w,j);ctx.stroke();}
+}
+
+function animRuler_ch2(ctx,x,y,angle,C){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(angle);
+  ctx.fillStyle=C.ruler;
+  ctx.fillRect(-20,5,380,20);
+  ctx.strokeStyle=C.rulerBorder;
+  ctx.lineWidth=1;
+  ctx.strokeRect(-20,5,380,20);
+  for(var i=0;i<360;i+=10){ctx.beginPath();ctx.moveTo(i,5);ctx.lineTo(i,i%50===0?15:10);ctx.stroke();}
+  ctx.restore();
+}
+
+function animSquare_ch2(ctx,x,y,angle,C){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(angle);
+  ctx.fillStyle=C.square;
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(140,0);
+  ctx.lineTo(0,-140);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle=C.squareBorder;
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function animPencil_ch2(ctx,x,y,C){
+  ctx.save();
+  ctx.fillStyle=C.pencilBody;
+  ctx.beginPath();
+  ctx.moveTo(x,y);
+  ctx.lineTo(x+16,y-16);
+  ctx.lineTo(x+21,y-11);
+  ctx.lineTo(x,y);
+  ctx.fill();
+  ctx.fillStyle=C.pencilTip;
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+5,y-5);ctx.lineTo(x+7,y-3);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+
+function animRightAngle_ch2(ctx,x,y,angle,C){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(angle);
+  ctx.strokeStyle=C.right;
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(14,0);
+  ctx.lineTo(14,-14);
+  ctx.lineTo(0,-14);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ── Propriété 1 : (d1) // (d2), une droite (d3) ⊥ (d1) ⇒ (d3) ⊥ (d2) ──
+var angleP1_ch2=20*Math.PI/180;
+var cosP1_ch2=Math.cos(angleP1_ch2), sinP1_ch2=Math.sin(angleP1_ch2);
+var d1StartP1_ch2={x:50,y:120}, d1EndP1_ch2={x:50+560*cosP1_ch2,y:120+560*sinP1_ch2};
+var offsetP1_ch2=110;
+var normalP1_ch2={x:-sinP1_ch2,y:cosP1_ch2};
+var d2StartP1_ch2={x:d1StartP1_ch2.x+normalP1_ch2.x*offsetP1_ch2,y:d1StartP1_ch2.y+normalP1_ch2.y*offsetP1_ch2};
+var d2EndP1_ch2={x:d1EndP1_ch2.x+normalP1_ch2.x*offsetP1_ch2,y:d1EndP1_ch2.y+normalP1_ch2.y*offsetP1_ch2};
+var ptAP1_ch2={x:d1StartP1_ch2.x+220*cosP1_ch2,y:d1StartP1_ch2.y+220*sinP1_ch2};
+var ptBP1_ch2={x:ptAP1_ch2.x+normalP1_ch2.x*offsetP1_ch2,y:ptAP1_ch2.y+normalP1_ch2.y*offsetP1_ch2};
+var d3StartP1_ch2={x:ptAP1_ch2.x-normalP1_ch2.x*40,y:ptAP1_ch2.y-normalP1_ch2.y*40};
+var d3EndP1_ch2={x:ptAP1_ch2.x+normalP1_ch2.x*150,y:ptAP1_ch2.y+normalP1_ch2.y*150};
+
+var stepP1_ch2=0, progressP1_ch2=0;
+
+function startAnimProp1_ch2(){
+  cancelAnimationFrame(animFrameP1_ch2);
+  stepP1_ch2=1;progressP1_ch2=0;animRunningP1_ch2=true;
+  document.getElementById('anim-btn-prop1-ch2').disabled=true;
+  animateProp1_ch2();
+}
+
+function animateProp1_ch2(){
+  var canvas=document.getElementById('anim-canvas-prop1-ch2');
+  if(!canvas){animRunningP1_ch2=false;return;}
+  var ctx=canvas.getContext('2d');
+  var C=animColors_ch2();
+  var legend=document.getElementById('anim-legend-prop1-ch2');
+  var s=stepP1_ch2;
+  animClear_ch2(ctx,canvas,C);
+
+  if(s>=1){
+    legend.innerHTML="1. Traçons une droite (d1).";
+    var t=(s===1?progressP1_ch2:1);
+    var cx=d1StartP1_ch2.x+(d1EndP1_ch2.x-d1StartP1_ch2.x)*t;
+    var cy=d1StartP1_ch2.y+(d1EndP1_ch2.y-d1StartP1_ch2.y)*t;
+    ctx.strokeStyle=C.d1;ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(d1StartP1_ch2.x,d1StartP1_ch2.y);ctx.lineTo(cx,cy);ctx.stroke();
+    ctx.fillStyle=C.d1;ctx.font='italic 16px Arial';ctx.textAlign='left';ctx.fillText('(d1)',d1EndP1_ch2.x+12,d1EndP1_ch2.y+5);
+    if(s===1){
+      animRuler_ch2(ctx,d1StartP1_ch2.x,d1StartP1_ch2.y,angleP1_ch2,C);
+      animPencil_ch2(ctx,cx,cy,C);
+      progressP1_ch2+=0.004;
+      if(progressP1_ch2>=1){stepP1_ch2=2;progressP1_ch2=0;}
+    }
+  }
+
+  if(s>=2){
+    if(s===2){
+      legend.innerHTML="2. Faisons glisser la règle parallèlement pour tracer (d2), sans changer son inclinaison.";
+      var t2=progressP1_ch2;
+      var cx2=d2StartP1_ch2.x+(d2EndP1_ch2.x-d2StartP1_ch2.x)*t2;
+      var cy2=d2StartP1_ch2.y+(d2EndP1_ch2.y-d2StartP1_ch2.y)*t2;
+      ctx.strokeStyle=C.d2;ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(d2StartP1_ch2.x,d2StartP1_ch2.y);ctx.lineTo(cx2,cy2);ctx.stroke();
+      animRuler_ch2(ctx,d2StartP1_ch2.x,d2StartP1_ch2.y,angleP1_ch2,C);
+      animPencil_ch2(ctx,cx2,cy2,C);
+      progressP1_ch2+=0.004;
+      if(progressP1_ch2>=1){stepP1_ch2=3;progressP1_ch2=0;}
+    }else{
+      ctx.strokeStyle=C.d2;ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(d2StartP1_ch2.x,d2StartP1_ch2.y);ctx.lineTo(d2EndP1_ch2.x,d2EndP1_ch2.y);ctx.stroke();
+      ctx.fillStyle=C.d2;ctx.font='italic 16px Arial';ctx.textAlign='left';ctx.fillText('(d2)',d2EndP1_ch2.x+12,d2EndP1_ch2.y+5);
+    }
+  }
+
+  if(s>=3){
+    ctx.fillStyle=C.text;ctx.beginPath();ctx.arc(ptAP1_ch2.x,ptAP1_ch2.y,3,0,2*Math.PI);ctx.fill();
+    ctx.font='bold 14px Arial';ctx.textAlign='left';ctx.fillText('A',ptAP1_ch2.x-18,ptAP1_ch2.y-8);
+
+    if(s===3){
+      legend.innerHTML="3. Plaçons l'équerre en A, sur (d1), et traçons la perpendiculaire (d3).";
+      var t3=progressP1_ch2;
+      var cx3=d3StartP1_ch2.x+(d3EndP1_ch2.x-d3StartP1_ch2.x)*t3;
+      var cy3=d3StartP1_ch2.y+(d3EndP1_ch2.y-d3StartP1_ch2.y)*t3;
+      ctx.strokeStyle=C.d3;ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(d3StartP1_ch2.x,d3StartP1_ch2.y);ctx.lineTo(cx3,cy3);ctx.stroke();
+      animSquare_ch2(ctx,ptAP1_ch2.x,ptAP1_ch2.y,angleP1_ch2,C);
+      animPencil_ch2(ctx,cx3,cy3,C);
+      progressP1_ch2+=0.0035;
+      if(progressP1_ch2>=1){stepP1_ch2=4;progressP1_ch2=0;}
+    }else{
+      ctx.strokeStyle=C.d3;ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(d3StartP1_ch2.x,d3StartP1_ch2.y);ctx.lineTo(d3EndP1_ch2.x,d3EndP1_ch2.y);ctx.stroke();
+      ctx.fillStyle=C.d3;ctx.font='italic 16px Arial';ctx.textAlign='left';ctx.fillText('(d3)',d3StartP1_ch2.x-45,d3StartP1_ch2.y-6);
+      animRightAngle_ch2(ctx,ptAP1_ch2.x,ptAP1_ch2.y,angleP1_ch2,C);
+    }
+  }
+
+  if(s>=4){
+    ctx.fillStyle=C.text;ctx.beginPath();ctx.arc(ptBP1_ch2.x,ptBP1_ch2.y,3,0,2*Math.PI);ctx.fill();
+    ctx.font='bold 14px Arial';ctx.textAlign='left';ctx.fillText('B',ptBP1_ch2.x-18,ptBP1_ch2.y+18);
+
+    if(s===4){
+      legend.innerHTML="4. Faisons glisser l'équerre le long de (d3) jusqu'en B, là où (d3) coupe (d2) : l'angle droit s'y retrouve aussi.";
+      var slide=progressP1_ch2;
+      var sx=ptAP1_ch2.x+(ptBP1_ch2.x-ptAP1_ch2.x)*slide;
+      var sy=ptAP1_ch2.y+(ptBP1_ch2.y-ptAP1_ch2.y)*slide;
+      animSquare_ch2(ctx,sx,sy,angleP1_ch2,C);
+      progressP1_ch2+=0.004;
+      if(progressP1_ch2>=1){stepP1_ch2=5;progressP1_ch2=0;}
+    }else{
+      animRightAngle_ch2(ctx,ptBP1_ch2.x,ptBP1_ch2.y,angleP1_ch2,C);
+    }
+  }
+
+  if(s===5){
+    legend.innerHTML="Propriété 1 : (d1) // (d2) et (d3) ⊥ (d1), donc <strong style='color:"+C.d3+"'>(d3) ⊥ (d2)</strong> aussi.";
+    animRunningP1_ch2=false;
+    document.getElementById('anim-btn-prop1-ch2').disabled=false;
+    return;
+  }
+
+  animFrameP1_ch2=requestAnimationFrame(animateProp1_ch2);
+}
+
+// ── Propriété 2 : (d2) ⊥ (d1) et (d3) ⊥ (d1) ⇒ (d2) // (d3) ──
+var angleP2_ch2=30*Math.PI/180;
+var cosP2_ch2=Math.cos(angleP2_ch2), sinP2_ch2=Math.sin(angleP2_ch2);
+var d1StartP2_ch2={x:70,y:90}, d1EndP2_ch2={x:70+520*cosP2_ch2,y:90+520*sinP2_ch2};
+var ptAP2_ch2={x:d1StartP2_ch2.x+140*cosP2_ch2,y:d1StartP2_ch2.y+140*sinP2_ch2};
+var ptBP2_ch2={x:d1StartP2_ch2.x+380*cosP2_ch2,y:d1StartP2_ch2.y+380*sinP2_ch2};
+
+var stepP2_ch2=0, progressP2_ch2=0;
+
+function startAnimProp2_ch2(){
+  cancelAnimationFrame(animFrameP2_ch2);
+  stepP2_ch2=1;progressP2_ch2=0;animRunningP2_ch2=true;
+  document.getElementById('anim-btn-prop2-ch2').disabled=true;
+  animateProp2_ch2();
+}
+
+function animateProp2_ch2(){
+  var canvas=document.getElementById('anim-canvas-prop2-ch2');
+  if(!canvas){animRunningP2_ch2=false;return;}
+  var ctx=canvas.getContext('2d');
+  var C=animColors_ch2();
+  var legend=document.getElementById('anim-legend-prop2-ch2');
+  var s=stepP2_ch2;
+  animClear_ch2(ctx,canvas,C);
+
+  if(s>=1){
+    legend.innerHTML="1. Traçons une droite (d1) oblique, pour montrer que la propriété reste vraie quelle que soit l'orientation.";
+    var t=(s===1?progressP2_ch2:1);
+    var cx=d1StartP2_ch2.x+(d1EndP2_ch2.x-d1StartP2_ch2.x)*t;
+    var cy=d1StartP2_ch2.y+(d1EndP2_ch2.y-d1StartP2_ch2.y)*t;
+    ctx.strokeStyle=C.d1;ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(d1StartP2_ch2.x,d1StartP2_ch2.y);ctx.lineTo(cx,cy);ctx.stroke();
+    ctx.fillStyle=C.d1;ctx.font='italic 16px Arial';ctx.textAlign='left';ctx.fillText('(d1)',d1EndP2_ch2.x+12,d1EndP2_ch2.y+5);
+    if(s===1){
+      animRuler_ch2(ctx,d1StartP2_ch2.x,d1StartP2_ch2.y,angleP2_ch2,C);
+      animPencil_ch2(ctx,cx,cy,C);
+      progressP2_ch2+=0.003;
+      if(progressP2_ch2>=1){stepP2_ch2=2;progressP2_ch2=0;}
+    }
+  }
+
+  if(s>=2){
+    ctx.fillStyle=C.text;ctx.beginPath();ctx.arc(ptAP2_ch2.x,ptAP2_ch2.y,3,0,2*Math.PI);ctx.fill();
+    ctx.font='bold 14px Arial';ctx.textAlign='left';ctx.fillText('A',ptAP2_ch2.x-18,ptAP2_ch2.y+18);
+
+    var d2Start={x:ptAP2_ch2.x-(-sinP2_ch2)*120,y:ptAP2_ch2.y-cosP2_ch2*120};
+    var d2End={x:ptAP2_ch2.x+(-sinP2_ch2)*120,y:ptAP2_ch2.y+cosP2_ch2*120};
+
+    if(s===2){
+      legend.innerHTML="2. Plaçons un point A et ajustons l'équerre le long de (d1) pour tracer la perpendiculaire (d2).";
+      var t2=progressP2_ch2;
+      var cx2=d2Start.x+(d2End.x-d2Start.x)*t2;
+      var cy2=d2Start.y+(d2End.y-d2Start.y)*t2;
+      ctx.strokeStyle=C.d2;ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(d2Start.x,d2Start.y);ctx.lineTo(cx2,cy2);ctx.stroke();
+      animSquare_ch2(ctx,ptAP2_ch2.x,ptAP2_ch2.y,angleP2_ch2,C);
+      animPencil_ch2(ctx,cx2,cy2,C);
+      progressP2_ch2+=0.004;
+      if(progressP2_ch2>=1){stepP2_ch2=3;progressP2_ch2=0;}
+    }else{
+      ctx.strokeStyle=C.d2;ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(d2Start.x,d2Start.y);ctx.lineTo(d2End.x,d2End.y);ctx.stroke();
+      ctx.fillStyle=C.d2;ctx.font='italic 16px Arial';ctx.textAlign='left';ctx.fillText('(d2)',d2Start.x-45,d2Start.y-10);
+      animRightAngle_ch2(ctx,ptAP2_ch2.x,ptAP2_ch2.y,angleP2_ch2,C);
+    }
+  }
+
+  if(s>=3){
+    ctx.fillStyle=C.text;ctx.beginPath();ctx.arc(ptBP2_ch2.x,ptBP2_ch2.y,3,0,2*Math.PI);ctx.fill();
+    ctx.font='bold 14px Arial';ctx.textAlign='left';ctx.fillText('B',ptBP2_ch2.x-18,ptBP2_ch2.y+18);
+
+    var d3Start={x:ptBP2_ch2.x-(-sinP2_ch2)*120,y:ptBP2_ch2.y-cosP2_ch2*120};
+    var d3End={x:ptBP2_ch2.x+(-sinP2_ch2)*120,y:ptBP2_ch2.y+cosP2_ch2*120};
+
+    if(s===3){
+      legend.innerHTML="3. Glissons l'équerre plus loin, jusqu'en B, et traçons la seconde perpendiculaire (d3).";
+      var t3=progressP2_ch2;
+      var cx3=d3Start.x+(d3End.x-d3Start.x)*t3;
+      var cy3=d3Start.y+(d3End.y-d3Start.y)*t3;
+      ctx.strokeStyle=C.d3;ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(d3Start.x,d3Start.y);ctx.lineTo(cx3,cy3);ctx.stroke();
+      animSquare_ch2(ctx,ptBP2_ch2.x,ptBP2_ch2.y,angleP2_ch2,C);
+      animPencil_ch2(ctx,cx3,cy3,C);
+      progressP2_ch2+=0.004;
+      if(progressP2_ch2>=1){stepP2_ch2=4;progressP2_ch2=0;}
+    }else{
+      ctx.strokeStyle=C.d3;ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(d3Start.x,d3Start.y);ctx.lineTo(d3End.x,d3End.y);ctx.stroke();
+      ctx.fillStyle=C.d3;ctx.font='italic 16px Arial';ctx.textAlign='left';ctx.fillText('(d3)',d3Start.x-45,d3Start.y-10);
+      animRightAngle_ch2(ctx,ptBP2_ch2.x,ptBP2_ch2.y,angleP2_ch2,C);
+    }
+  }
+
+  if(s===4){
+    legend.innerHTML="Propriété 2 : (d2) et (d3) sont toutes deux perpendiculaires à (d1), donc <strong style='color:"+C.d2+"'>(d2) // (d3)</strong>.";
+    animRunningP2_ch2=false;
+    document.getElementById('anim-btn-prop2-ch2').disabled=false;
+    return;
+  }
+
+  animFrameP2_ch2=requestAnimationFrame(animateProp2_ch2);
+}
+
 function buildFigEx1_ch2(){
   var el=document.getElementById('fig-ex1-ch2');
   if(!el)return;
