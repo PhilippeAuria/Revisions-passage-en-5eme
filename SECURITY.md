@@ -19,12 +19,12 @@ Révisions 6ème est une suite de fichiers statiques (HTML, CSS, JavaScript). El
 La page `index.html` contient une politique stricte, dans une balise `<meta http-equiv="Content-Security-Policy">` :
 
 ```text
-default-src 'none'; script-src 'sha256-…'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'
+default-src 'none'; script-src 'sha256-…'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'none'; manifest-src 'self'; worker-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'
 ```
 
 - **Un seul script s'exécute** : celui de la page, reconnu par son empreinte SHA-256 (`script-src 'sha256-…'`). Aucun `'unsafe-inline'` pour les scripts, aucun `eval`.
 - **Aucun gestionnaire en ligne** : il n'y a plus d'attribut `onclick`. Les boutons portent `data-onclick="fonction"` et, s'il y a des arguments, `data-args='[…]'` (`"@this"` désigne le bouton cliqué). Un écouteur unique appelle, via la table `ACTIONS` du script, la même fonction qu'avant avec les mêmes arguments.
-- **Aucune connexion réseau** (`connect-src 'none'`), aucun formulaire, aucun cadre, aucun objet intégré.
+- **Aucune connexion réseau** (`connect-src 'none'`), aucun formulaire, aucun objet intégré. Seule une page du même site peut s'afficher dans un cadre (`frame-src 'self'`) : l'animation 3D du chapitre sur la symétrie axiale.
 - **Les styles en ligne restent autorisés** (`style-src 'unsafe-inline'`) : l'application est un seul fichier, variante prévue par le guide de la Forge.
 - **Mise à jour de l'empreinte** : elle change à chaque modification du script. Pour la recalculer, calculer le SHA-256 (en base64) du contenu de la balise `<script>`, fins de ligne normalisées en LF, et le reporter dans la balise `<meta>`.
 
